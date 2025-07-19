@@ -1,0 +1,20 @@
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Python
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.pytest_cache/
+venv/
+.venv/
+
+# Django
+db.sqlite3
+/media/
+/static_root/
