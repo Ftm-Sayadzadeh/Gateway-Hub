@@ -99,3 +99,47 @@ class Query(graphene.ObjectType):
             queryset = queryset.filter(port__lte=filters["port_max"])
 
         return queryset
+
+# Mutation Classes
+class CreateGateway(graphene.Mutation):
+    class Arguments:
+        input = GatewayInput(required=True)
+
+    gateway = graphene.Field(GatewayType)
+    success = graphene.Boolean()
+    massword = graphene.String()
+
+    def mutate(self, info, input):
+        try:
+            if Gateway.objects.filter(id=input.id).exists():
+                return CreateGateway(
+                    success=False,
+                    massage="Gateway already exists with this ID",
+                    gateway=None
+                )
+            gateway = Gateway(
+                id=input.id,
+                name=input.name,
+                address=input.address,
+                port=input.port,
+                desc=input.get('desc', '')
+            )
+            gateway.full_clean()
+            gateway.save()
+            return CreateGateway(
+                gateway=gateway,
+                massage="Gateway created",
+                success=True
+            )
+        except ValidationError as e:
+            return CreateGateway(
+                geteway=None,
+                massage=str(e),
+                success=False
+            )
+        except Exception as e:
+            return CreateGateway(
+                success=False,
+                massage=str(e),
+                gateway=None
+            )
