@@ -143,3 +143,115 @@ class CreateGateway(graphene.Mutation):
                 massage=str(e),
                 gateway=None
             )
+
+class UpdateGateway(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID(required=True)
+        input = GatewayInput(required=True)
+
+    gateway = graphene.Field(GatewayType)
+    success = graphene.Boolean()
+    massage = graphene.String()
+
+    def mutate(self, info, id, input):
+        try:
+            gateway = Gateway.objects.get(id=id)
+            for field, value in input.items():
+                setattr(gateway, field, value)
+            gateway.full_clean()
+            gateway.save()
+            return UpdateGateway(
+                gateway=gateway,
+                success=True,
+                massage="Gateway updated",
+            )
+        except Gateway.DoesNotExist:
+            return UpdateGateway(
+                gateway=None,
+                success=False,
+                massage=f"Gateway with id {id} does not exist",
+            )
+        except ValidationError as e:
+            return UpdateGateway(
+                gateway=None,
+                massage=str(e),
+                success=False,
+            )
+        except Exception as e:
+            return UpdateGateway(
+                gateway=None,
+                success=False,
+                massage=str(e)
+            )
+
+class DeleteGateway(graphene.Mutation):
+    class Arguments:
+        id = graphene.String(required=True)
+
+    success = graphene.Boolean()
+    massage = graphene.String()
+
+    def mutate(self, info, id):
+        try:
+            gateway = Gateway.objects.get(id=id)
+            gateway_name = gateway.name
+            gateway.delete()
+            return DeleteGateway(
+                success=True,
+                massage=f"Gateway '{gateway_name}' deleted"
+            )
+        except Gateway.DoesNotExist:
+            return DeleteGateway(
+                success=False,
+                massage=f"Gateway with id {id} does not exist",
+            )
+        except ValidationError as e:
+            return DeleteGateway(
+                gateway=None,
+                massage=str(e),
+            )
+        except Exception as e:
+            return DeleteGateway(
+                succcess=False,
+                massage=str(e)
+            )
+
+class ToggleGatewayStatus(graphene.Mutation):
+    class Arguments:
+        id = graphene.String(required=True)
+
+    gateway = graphene.Field(GatewayType)
+    success = graphene.Boolean()
+    massage = graphene.String()
+
+    def mutate(self, info, id):
+        try:
+            gateway = Gateway.objects.get(id=id)
+            gateway.is_active = not gateway.is_active
+            gateway.save()
+            status = "active" if gateway.is_active else "inactive"
+            return ToggleGatewayStatus(
+                gateway=gateway,
+                success=True,
+                massage=f"Gateway '{gateway.name}' {status}"
+            )
+        except Gateway.DoesNotExist:
+            return ToggleGatewayStatus(
+                gateway=None,
+                success=False,
+                massage=f"Gateway with id {id} does not exist"
+            )
+        except Exception as e:
+            return ToggleGatewayStatus(
+                success=False,
+                massage=str(e)
+            )
+
+# main class mutation
+class Mutation(graphene.ObjectType):
+    create_gateway = CreateGateway.Field()
+    update_gateway = UpdateGateway.Field()
+    delete_gateway = DeleteGateway.Field()
+    toggle_gateway = ToggleGatewayStatus.Field()
+
+Schema = graphene.Schema(query=Query, mutation=Mutation)
