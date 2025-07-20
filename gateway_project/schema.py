@@ -1,5 +1,5 @@
 import graphene
-import gateway_management.schema as gateway_schema
+import gateway_manager.schema as gateway_schema
 
 class Query(gateway_schema.Query, graphene.ObjectType):
     """
