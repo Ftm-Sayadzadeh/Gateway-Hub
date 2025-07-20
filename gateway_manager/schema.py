@@ -107,14 +107,14 @@ class CreateGateway(graphene.Mutation):
 
     gateway = graphene.Field(GatewayType)
     success = graphene.Boolean()
-    massword = graphene.String()
+    message = graphene.String()
 
     def mutate(self, info, input):
         try:
             if Gateway.objects.filter(id=input.id).exists():
                 return CreateGateway(
                     success=False,
-                    massage="Gateway already exists with this ID",
+                    message="Gateway already exists with this ID",
                     gateway=None
                 )
             gateway = Gateway(
@@ -128,30 +128,30 @@ class CreateGateway(graphene.Mutation):
             gateway.save()
             return CreateGateway(
                 gateway=gateway,
-                massage="Gateway created",
+                message="Gateway created",
                 success=True
             )
         except ValidationError as e:
             return CreateGateway(
-                geteway=None,
-                massage=str(e),
+                gateway=None,
+                message=str(e),
                 success=False
             )
         except Exception as e:
             return CreateGateway(
                 success=False,
-                massage=str(e),
+                message=str(e),
                 gateway=None
             )
 
 class UpdateGateway(graphene.Mutation):
     class Arguments:
         id = graphene.ID(required=True)
-        input = GatewayInput(required=True)
+        input = GatewayUpdateInput(required=True)
 
     gateway = graphene.Field(GatewayType)
     success = graphene.Boolean()
-    massage = graphene.String()
+    message = graphene.String()
 
     def mutate(self, info, id, input):
         try:
@@ -163,25 +163,25 @@ class UpdateGateway(graphene.Mutation):
             return UpdateGateway(
                 gateway=gateway,
                 success=True,
-                massage="Gateway updated",
+                message="Gateway updated",
             )
         except Gateway.DoesNotExist:
             return UpdateGateway(
                 gateway=None,
                 success=False,
-                massage=f"Gateway with id {id} does not exist",
+                message=f"Gateway with id {id} does not exist",
             )
         except ValidationError as e:
             return UpdateGateway(
                 gateway=None,
-                massage=str(e),
+                message=str(e),
                 success=False,
             )
         except Exception as e:
             return UpdateGateway(
                 gateway=None,
                 success=False,
-                massage=str(e)
+                message=str(e)
             )
 
 class DeleteGateway(graphene.Mutation):
@@ -189,7 +189,7 @@ class DeleteGateway(graphene.Mutation):
         id = graphene.String(required=True)
 
     success = graphene.Boolean()
-    massage = graphene.String()
+    message = graphene.String()
 
     def mutate(self, info, id):
         try:
@@ -198,22 +198,22 @@ class DeleteGateway(graphene.Mutation):
             gateway.delete()
             return DeleteGateway(
                 success=True,
-                massage=f"Gateway '{gateway_name}' deleted"
+                message=f"Gateway '{gateway_name}' deleted"
             )
         except Gateway.DoesNotExist:
             return DeleteGateway(
                 success=False,
-                massage=f"Gateway with id {id} does not exist",
+                message=f"Gateway with id {id} does not exist",
             )
         except ValidationError as e:
             return DeleteGateway(
                 gateway=None,
-                massage=str(e),
+                message=str(e),
             )
         except Exception as e:
             return DeleteGateway(
                 succcess=False,
-                massage=str(e)
+                message=str(e)
             )
 
 class ToggleGatewayStatus(graphene.Mutation):
@@ -222,7 +222,7 @@ class ToggleGatewayStatus(graphene.Mutation):
 
     gateway = graphene.Field(GatewayType)
     success = graphene.Boolean()
-    massage = graphene.String()
+    message = graphene.String()
 
     def mutate(self, info, id):
         try:
@@ -233,18 +233,18 @@ class ToggleGatewayStatus(graphene.Mutation):
             return ToggleGatewayStatus(
                 gateway=gateway,
                 success=True,
-                massage=f"Gateway '{gateway.name}' {status}"
+                message=f"Gateway '{gateway.name}' {status}"
             )
         except Gateway.DoesNotExist:
             return ToggleGatewayStatus(
                 gateway=None,
                 success=False,
-                massage=f"Gateway with id {id} does not exist"
+                message=f"Gateway with id {id} does not exist"
             )
         except Exception as e:
             return ToggleGatewayStatus(
                 success=False,
-                massage=str(e)
+                message=str(e)
             )
 
 # main class mutation
