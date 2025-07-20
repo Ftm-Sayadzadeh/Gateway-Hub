@@ -10,7 +10,7 @@ class Gateway(models.Model) :
     name = models.CharField(max_length=100)
     address = models.GenericIPAddressField()
     port = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(65535)],
+        validators=[MinValueValidator(1), MaxValueValidator(65535)], # UDP/TCP
     )
     desc = models.TextField(blank=True , null=True)
 

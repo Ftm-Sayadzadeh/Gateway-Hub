@@ -41,7 +41,7 @@ class GatewayUpdateInput(graphene.InputObjectType):
 class Query(graphene.ObjectType):
     all_gateways = graphene.List(
         GatewayType,
-        is_active=graphene.Boolean(description="Is active?"),
+        is_active=graphene.Boolean(description="Is active?"), # filter
         description="get a list of all gateways with active status filter",
     )
 
