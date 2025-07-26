@@ -115,7 +115,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # GraphQL Configuration
 GRAPHENE = {
-    'SCHEMA': 'gateway_management.schema.schema' # Path to your GraphQL schema for the gateway_management app
+    'SCHEMA': 'gateway_project.schema.schema'
 }
 
 # CORS Configuration
