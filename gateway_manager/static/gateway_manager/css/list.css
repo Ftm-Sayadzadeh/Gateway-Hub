@@ -4,13 +4,14 @@ body {
     background-color: #f4f4f4;
     color: #333;
     line-height: 1.6;
+    box-sizing: border-box;
 }
 
 /*Container*/
 .container {
     width: 50%;
     margin: 2rem auto;
-    padding: 0.5rem 0 2rem;
+    padding: 1rem;
     background-color: white;
     border-radius: 1rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -20,14 +21,6 @@ body {
 h1 {
     text-align: center;
     color: #003366;
-    margin-bottom: 1rem;
-}
-
-.page-title {
-    text-align: center;
-    color: #003366;
-    margin-bottom: 1.5rem;
-    font-size: 1.8em;
 }
 
 /* Loading and Error Messages */
