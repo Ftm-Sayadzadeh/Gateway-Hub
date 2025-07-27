@@ -3,6 +3,7 @@ const gatewayDetailContainer = document.getElementById('gateway-detail-container
 const GET_GATEWAY_BY_ID_QUERY = `
     query GetGateway($id: ID!) {
         gateway(id: $id) {
+            id
             name
             address
             port
@@ -40,7 +41,6 @@ async function fetchGraphQL(query, variables = {}) {
         }
 
         const result = await response.json();
-
         if (result.errors) {
             throw new Error(result.errors[0].message);
         }
