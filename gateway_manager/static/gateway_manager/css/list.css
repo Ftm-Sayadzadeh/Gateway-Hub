@@ -9,8 +9,8 @@ body {
 /*Container*/
 .container {
     width: 50%;
-    margin: 3rem auto;
-    padding: 1rem;
+    margin: 2rem auto;
+    padding: 0.5rem 0 2rem;
     background-color: white;
     border-radius: 1rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);

@@ -92,17 +92,19 @@ async function renderGatewayDetail() {
                     <label>Name:</label>
                     <input type="text" value="${gateway.name}" disabled>
                 </div>
+                
+                <div class="field-group-row">
+                    <div class="field-group field-group-row-item">
+                        <label>IP Address:</label>
+                        <input type="text" value="${gateway.address}" disabled>
+                    </div>
             
-                <div class="field-group">
-                    <label>IP Address:</label>
-                    <input type="text" value="${gateway.address}" disabled>
+                    <div class="field-group field-group-row-item">
+                        <label>Port:</label>
+                        <input type="text" value="${gateway.port}" disabled>
+                    </div>
                 </div>
-            
-                <div class="field-group">
-                    <label>Port:</label>
-                    <input type="text" value="${gateway.port}" disabled>
-                </div>
-            
+                
                 <div class="field-group">
                     <label>Description:</label>
                     <textarea disabled>${gateway.desc || 'None'}</textarea>
@@ -165,10 +167,8 @@ const TOGGLE_GATEWAY_STATUS_MUTATION = `
 // toggle between status
 async function handleToggleStatus(gatewayId) {
     try {
-        console.log(11)
         const data = await fetchGraphQL(TOGGLE_GATEWAY_STATUS_MUTATION, {id: String(gatewayId)});
         if (data.toggleGateway.success) {
-            console.log(1)
             const updatedGateway = data.toggleGateway.gateway;
             const statusCheckBoxElement = document.getElementById('status-checkbox')
             const gatewayUpdatedAtElement = document.getElementById('gatewayUpdatedAt')
