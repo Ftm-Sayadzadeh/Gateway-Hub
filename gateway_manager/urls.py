@@ -3,6 +3,6 @@ from gateway_manager import views
 
 urlpatterns = [
     path('', views.list_gateways, name='gateways-list'),
-    path('gateway/<str:gateway_id>/', views.detail_gateway, name='gateway_detail'),
+    path('gateway/<int:gateway_id>/', views.detail_gateway, name='gateway_detail'),
 
 ]
