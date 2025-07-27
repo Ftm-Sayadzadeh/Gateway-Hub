@@ -1,9 +1,8 @@
 const gatewayDetailContainer = document.getElementById('gateway-detail-container');
 
 const GET_GATEWAY_BY_ID_QUERY = `
-    query GetGateway($id: String!) {
+    query GetGateway($id: ID!) {
         gateway(id: $id) {
-            id
             name
             address
             port
@@ -88,11 +87,6 @@ async function renderGatewayDetail() {
                         <span class="slider"></span>
                     </label>
                 </div>
-                
-                <div class="field-group">
-                    <label>ID:</label>
-                    <input type="text" value="${gateway.id}" disabled>
-                </div>
             
                 <div class="field-group">
                     <label>Name:</label>
@@ -154,7 +148,7 @@ async function renderGatewayDetail() {
 document.addEventListener('DOMContentLoaded', renderGatewayDetail);
 
 const TOGGLE_GATEWAY_STATUS_MUTATION = `
-  mutation ToggleGatewayStatus($id: String!) {
+  mutation ToggleGatewayStatus($id: ID!) {
     toggleGateway(id: $id) {
       success
       message
@@ -172,7 +166,7 @@ const TOGGLE_GATEWAY_STATUS_MUTATION = `
 async function handleToggleStatus(gatewayId) {
     try {
         console.log(11)
-        const data = await fetchGraphQL(TOGGLE_GATEWAY_STATUS_MUTATION, {id: gatewayId});
+        const data = await fetchGraphQL(TOGGLE_GATEWAY_STATUS_MUTATION, {id: String(gatewayId)});
         if (data.toggleGateway.success) {
             console.log(1)
             const updatedGateway = data.toggleGateway.gateway;

@@ -8,7 +8,7 @@ body {
 
 /*Container*/
 .container {
-    width: 75%;
+    width: 50%;
     margin: 3rem auto;
     padding: 1rem;
     background-color: white;
@@ -74,7 +74,6 @@ h1 {
 }
 
 .gateway-name,
-.gateway-id,
 .gateway-address,
 .gateway-status {
     min-width: 7.5rem;
@@ -82,9 +81,8 @@ h1 {
     font-weight: bold;
 }
 .gateway-name,
-.gateway-id,
 .gateway-address {
-    flex: 1 1 28%;
+    flex: 1 1 40%;
 }
 
 .gateway-status {

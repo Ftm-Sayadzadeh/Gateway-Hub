@@ -71,7 +71,6 @@ async function renderGatewayList() {
             listHtml += `
                 <div class="gateway-item" data-id="${gateway.id}">
                     <div class="gateway-name">${gateway.name}</div>
-                    <div class="gateway-id">${gateway.id}</div>
                     <div class="gateway-address">${gateway.address}:${gateway.port}</div>
                     <div class="gateway-status ${gateway.isActive ? 'active' : 'inactive'}">
                             ${gateway.isActive ? 'active' : 'inactive'}
