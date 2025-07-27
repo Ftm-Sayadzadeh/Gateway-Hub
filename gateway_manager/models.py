@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 
 
 class Gateway(models.Model) :
-    id = models.CharField(max_length=50, primary_key=True, unique=True)
     name = models.CharField(max_length=100)
     address = models.GenericIPAddressField()
     port = models.IntegerField(
@@ -42,7 +41,7 @@ class Gateway(models.Model) :
         if Gateway.objects.filter(
             address=self.address,
             port=self.port
-        ).exclude(id=self.id).exists():
+        ).exclude(id=self.pk).exists():
             raise ValidationError("Gate way with this address and port already exists")
 
     def save(self, *args, **kwargs):
