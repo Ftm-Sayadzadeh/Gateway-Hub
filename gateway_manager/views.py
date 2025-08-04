@@ -1,3 +1,7 @@
 from django.shortcuts import render
 
-# Create your views here.
+def list_gateways(request):
+    return render(request, 'gateway_manager/list.html')
+
+def detail_gateway(request, gateway_id):
+    return render(request, 'gateway_manager/detail.html')

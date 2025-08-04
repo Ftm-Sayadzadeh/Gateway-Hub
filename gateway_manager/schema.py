@@ -23,7 +23,6 @@ class GatewayType(DjangoObjectType):
 
 # input type for mutation - all required field
 class GatewayInput(graphene.InputObjectType):
-    id = graphene.String(required=True, description="Unique identifier for the Gateway")
     name = graphene.String(required=True, description="Display name for the Gateway")
     address = graphene.String(required=True, description="IP address of the Gateway")
     port = graphene.Int(required=True, description="Port number of the Gateway")
@@ -47,7 +46,7 @@ class Query(graphene.ObjectType):
 
     gateway = graphene.Field(
         GatewayType,
-        id=graphene.String(required=True, description="Unique identifier for the Gateway"),
+        id=graphene.ID(required=True, description="Unique identifier for the Gateway"),
         description="get a single gateway"
     )
 
@@ -83,7 +82,7 @@ class Query(graphene.ObjectType):
         return Gateway.objects.filter(
             models.Q(name__icontains=query) |
             models.Q(desc__icontains=query) |
-            models.Q(id__icontains=query)
+            models.Q(id__icontains=query) #might not work in numbers
         )
 
     def resolve_filter_gateways(self, info, **filters):
@@ -111,14 +110,7 @@ class CreateGateway(graphene.Mutation):
 
     def mutate(self, info, input):
         try:
-            if Gateway.objects.filter(id=input.id).exists():
-                return CreateGateway(
-                    success=False,
-                    message="Gateway already exists with this ID",
-                    gateway=None
-                )
             gateway = Gateway(
-                id=input.id,
                 name=input.name,
                 address=input.address,
                 port=input.port,
@@ -218,7 +210,7 @@ class DeleteGateway(graphene.Mutation):
 
 class ToggleGatewayStatus(graphene.Mutation):
     class Arguments:
-        id = graphene.String(required=True)
+        id = graphene.ID(required=True)
 
     gateway = graphene.Field(GatewayType)
     success = graphene.Boolean()
