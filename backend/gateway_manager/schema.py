@@ -20,6 +20,10 @@ class GatewayType(DjangoObjectType):
     def resolve_is_local(self, info):
         return self.is_local
 
+class GatewayPage(graphene.ObjectType):
+    gateways = graphene.List(GatewayType)
+    total_count = graphene.Int()
+
 
 # input type for mutation - all required field
 class GatewayInput(graphene.InputObjectType):
@@ -38,10 +42,12 @@ class GatewayUpdateInput(graphene.InputObjectType):
     is_active = graphene.Boolean(description="New active/inactive status of the Gateway")
 
 class Query(graphene.ObjectType):
-    all_gateways = graphene.List(
-        GatewayType,
-        is_active=graphene.Boolean(description="Is active?"), # filter
-        description="get a list of all gateways with active status filter",
+    all_gateways = graphene.Field(
+        GatewayPage,
+        is_active=graphene.Boolean(description="Is active?"),
+        first=graphene.Int(description="Number of items to return"),
+        offset=graphene.Int(description="Number of items to skip"),
+        description="get a list of all gateways with active status filter and pagination",
     )
 
     gateway = graphene.Field(
@@ -50,27 +56,42 @@ class Query(graphene.ObjectType):
         description="get a single gateway"
     )
 
-    search_gateways = graphene.List(
-        GatewayType,
+    search_gateways = graphene.Field(
+        GatewayPage,
         query=graphene.String(required=True, description="Search term for name, description, or ID"),
-        description="Search Gateways by matching text in their name, description, or ID."
+        first=graphene.Int(description="Number of items to return"),
+        offset=graphene.Int(description="Number of items to skip"),
+        description="Search Gateways by matching text in their name, description, or ID with pagination."
     )
 
-    filter_gateways = graphene.List(
-        GatewayType,
+    filter_gateways = graphene.Field(
+        GatewayPage,
         address_contains=graphene.String(description="filter by partial ip address match"),
         port_min=graphene.Int(description="filter by minimum port number"),
         port_max=graphene.Int(description="filter by maximum port number"),
         is_active=graphene.Boolean(description="Is active?"),
-        description="filter gateways by active status, port range, address"
+        first=graphene.Int(description="Number of items to return"),
+        offset=graphene.Int(description="Number of items to skip"),
+        description="filter gateways by active status, port range, address with pagination"
     )
 
-
-    def resolve_all_gateways(self, info, is_active=None):
+    def resolve_all_gateways(self, info, is_active=None, first=None, offset=None):
         queryset = Gateway.objects.all()
         if is_active is not None:
             queryset = queryset.filter(is_active=is_active)
-        return queryset
+        
+        total_count = queryset.count()
+        
+        if first is not None and offset is not None:
+            sliced_queryset = queryset[offset:offset + first]
+        elif first is not None:
+            sliced_queryset = queryset[:first]
+        elif offset is not None:
+            sliced_queryset = queryset[offset:]
+        else:
+            sliced_queryset = queryset
+            
+        return GatewayPage(gateways=sliced_queryset, total_count=total_count)
 
     def resolve_gateway(self, info, id):
         try:
@@ -78,12 +99,24 @@ class Query(graphene.ObjectType):
         except Gateway.DoesNotExist:
             return None
 
-    def resolve_search_gateways(self, info, query):
-        return Gateway.objects.filter(
+    def resolve_search_gateways(self, info, query, first=None, offset=None):
+        queryset = Gateway.objects.filter(
             models.Q(name__icontains=query) |
             models.Q(desc__icontains=query) |
-            models.Q(id__icontains=query) #might not work in numbers
+            models.Q(id__icontains=query)
         )
+        total_count = queryset.count()
+
+        if first is not None and offset is not None:
+            sliced_queryset = queryset[offset:offset + first]
+        elif first is not None:
+            sliced_queryset = queryset[:first]
+        elif offset is not None:
+            sliced_queryset = queryset[offset:]
+        else:
+            sliced_queryset = queryset
+            
+        return GatewayPage(gateways=sliced_queryset, total_count=total_count)
 
     def resolve_filter_gateways(self, info, **filters):
         queryset = Gateway.objects.all()
@@ -97,7 +130,20 @@ class Query(graphene.ObjectType):
         if filters.get("port_max"):
             queryset = queryset.filter(port__lte=filters["port_max"])
 
-        return queryset
+        total_count = queryset.count()
+        first = filters.get("first")
+        offset = filters.get("offset")
+
+        if first is not None and offset is not None:
+            sliced_queryset = queryset[offset:offset + first]
+        elif first is not None:
+            sliced_queryset = queryset[:first]
+        elif offset is not None:
+            sliced_queryset = queryset[offset:]
+        else:
+            sliced_queryset = queryset
+        
+        return GatewayPage(gateways=sliced_queryset, total_count=total_count)
 
 # Mutation Classes
 class CreateGateway(graphene.Mutation):
