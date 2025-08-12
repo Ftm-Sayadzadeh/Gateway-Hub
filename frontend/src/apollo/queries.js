@@ -1,18 +1,16 @@
 import { gql } from '@apollo/client'
 
 export const GET_ALL_GATEWAYS = gql`
-  query GetAllGateways($isActive: Boolean) {
-    allGateways(isActive: $isActive) {
-      id
-      name
-      address
-      port
-      desc
-      isActive
-      connectionString
-      isLocal
-      createdAt
-      updatedAt
+  query GetAllGateways($isActive: Boolean, $first: Int, $offset: Int) {
+    allGateways(isActive: $isActive, first: $first, offset: $offset) {
+      gateways {
+        id
+        name
+        address
+        port
+        isActive
+      }
+      totalCount
     }
   }
 `
@@ -35,18 +33,16 @@ export const GET_GATEWAY = gql`
 `
 
 export const SEARCH_GATEWAYS = gql`
-  query SearchGateways($query: String!) {
-    searchGateways(query: $query) {
-      id
-      name
-      address
-      port
-      desc
-      isActive
-      connectionString
-      isLocal
-      createdAt
-      updatedAt
+  query SearchGateways($query: String!, $first: Int, $offset: Int) {
+    searchGateways(query: $query, first: $first, offset: $offset) {
+      gateways {
+        id
+        name
+        address
+        port
+        isActive
+      }
+      totalCount
     }
   }
 `
@@ -57,23 +53,25 @@ export const FILTER_GATEWAYS = gql`
     $portMin: Int
     $portMax: Int
     $isActive: Boolean
+    $first: Int
+    $offset: Int
   ) {
     filterGateways(
       addressContains: $addressContains
       portMin: $portMin
       portMax: $portMax
       isActive: $isActive
+      first: $first
+      offset: $offset
     ) {
-      id
-      name
-      address
-      port
-      desc
-      isActive
-      connectionString
-      isLocal
-      createdAt
-      updatedAt
+      gateways {
+        id
+        name
+        address
+        port
+        isActive
+      }
+      totalCount
     }
   }
 `
