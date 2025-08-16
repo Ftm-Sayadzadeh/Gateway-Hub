@@ -12,6 +12,8 @@ import {
 } from '@/apollo/queries'
 
 export function useGatewaysGraphQL() {
+  const pageSize = ref(8)
+  const currentPage = ref(1)
   const filters = ref({
     isActive: null,
     addressContains: '',
@@ -20,342 +22,227 @@ export function useGatewaysGraphQL() {
     search: '',
   })
 
-  const {
-    result: gatewaysResult,
-    loading: gatewaysLoading,
-    error: gatewaysError,
-    refetch: refetchGateways,
-  } = useQuery(
-    GET_ALL_GATEWAYS,
-    () => ({
-      isActive: filters.value.isActive,
-    }),
-    {
-      pollInterval: 60000, // 1 min
-      notifyOnNetworkStatusChange: true,
-      fetchPolicy: 'cache-first',
-    },
-  )
+  const currentQuery = computed(() => {
+    if (filters.value.search) {
+      return SEARCH_GATEWAYS
+    }
+    
+    const hasAdvancedFilters =
+      filters.value.addressContains ||
+      filters.value.portMin ||
+      filters.value.portMax ||
+      filters.value.isActive !== null
 
-  const gateways = computed(() => {
-    return gatewaysResult.value?.allGateways || []
+    if (hasAdvancedFilters) {
+      return FILTER_GATEWAYS
+    }
+
+    return GET_ALL_GATEWAYS
+  })
+
+  const variables = computed(() => {
+    const baseVars = {
+      first: pageSize.value,
+      offset: (currentPage.value - 1) * pageSize.value,
+    }
+
+    if (filters.value.search) {
+      return { ...baseVars, query: filters.value.search }
+    }
+    
+    const filterVars = {
+      addressContains: filters.value.addressContains || null,
+      portMin: filters.value.portMin || null,
+      portMax: filters.value.portMax || null,
+      isActive: filters.value.isActive,
+    }
+    return { ...baseVars, ...filterVars }
   })
 
   const {
-    result: searchResult,
-    loading: searchLoading,
-    error: searchError,
-    refetch: searchGateways,
-  } = useQuery(
-    SEARCH_GATEWAYS,
-    () => ({
-      query: filters.value.search,
-    }),
-    {
-      enabled: computed(() => !!filters.value.search),
-    },
-  )
+    result,
+    loading: gatewaysLoading,
+    error: gatewaysError,
+    refetch,
+  } = useQuery(currentQuery, variables, {
+    fetchPolicy: 'cache-first',
+    notifyOnNetworkStatusChange: false,
+    errorPolicy: 'all'
+  })
 
-  const {
-    result: filterResult,
-    loading: filterLoading,
-    error: filterError,
-    refetch: filterGateways,
-  } = useQuery(
-    FILTER_GATEWAYS,
-    () => ({
-      addressContains: filters.value.addressContains,
-      portMin: filters.value.portMin,
-      portMax: filters.value.portMax,
-      isActive: filters.value.isActive,
-    }),
-    {
-      enabled: computed(
-        () =>
-          filters.value.addressContains ||
-          filters.value.portMin ||
-          filters.value.portMax ||
-          filters.value.isActive !== null,
-      ),
-    },
-  )
+  const gateways = computed(() => {
+    const data = result.value
+    if (!data) return []
+    const gatewaysData =
+      data.allGateways?.gateways ||
+      data.searchGateways?.gateways ||
+      data.filterGateways?.gateways
+    return gatewaysData || []
+  })
+
+  const totalCount = computed(() => {
+    const data = result.value
+    if (!data) return 0
+    const total =
+      data.allGateways?.totalCount ||
+      data.searchGateways?.totalCount ||
+      data.filterGateways?.totalCount
+    return total || 0
+  })
+
+  const hasNextPage = computed(() => {
+    return currentPage.value * pageSize.value < totalCount.value
+  })
+
+  const hasPreviousPage = computed(() => {
+    return currentPage.value > 1
+  })
 
   // mutations
   const {
     mutate: createGateway,
     loading: createLoading,
     error: createError,
-  } = useMutation(CREATE_GATEWAY, {
-    update(cache, { data: { createGateway } }) {
-      if (createGateway.success) {
-        const existingGateways = cache.readQuery({ query: GET_ALL_GATEWAYS })
-        if (existingGateways) {
-          cache.writeQuery({
-            query: GET_ALL_GATEWAYS,
-            data: {
-              allGateways: [...existingGateways.allGateways, createGateway.gateway],
-            },
-          })
-        }
-      }
-    },
-  })
+  } = useMutation(CREATE_GATEWAY)
 
   const {
     mutate: updateGateway,
     loading: updateLoading,
     error: updateError,
-  } = useMutation(UPDATE_GATEWAY, {
-    update(cache, { data: { updateGateway } }, { variables }) {
-      if (updateGateway.success) {
-        const existingGateways = cache.readQuery({ query: GET_ALL_GATEWAYS })
-        if (existingGateways) {
-          const updatedGateways = existingGateways.allGateways.map((gateway) =>
-            gateway.id === variables.id ? { ...gateway, ...updateGateway.gateway } : gateway,
-          )
-          cache.writeQuery({
-            query: GET_ALL_GATEWAYS,
-            data: {
-              allGateways: updatedGateways,
-            },
-          })
-        }
-      }
-    },
-  })
+  } = useMutation(UPDATE_GATEWAY)
 
   const {
     mutate: deleteGateway,
     loading: deleteLoading,
     error: deleteError,
-  } = useMutation(DELETE_GATEWAY, {
-    update(cache, { data: { deleteGateway } }, { variables }) {
-      if (deleteGateway.success) {
-        cache.evict({ id: `Gateway:${variables.id}` })
-        cache.gc()
-      }
-    },
-  })
+  } = useMutation(DELETE_GATEWAY)
 
   const {
     mutate: toggleGatewayStatus,
     loading: toggleLoading,
     error: toggleError,
-  } = useMutation(TOGGLE_GATEWAY_STATUS, {
-    update(cache, { data: { toggleGateway } }, { variables }) {
-      if (toggleGateway.success) {
-        const existingGateways = cache.readQuery({ query: GET_ALL_GATEWAYS })
-        if (existingGateways) {
-          const updatedGateways = existingGateways.allGateways.map((gateway) =>
-            gateway.id === variables.id
-              ? {
-                  ...gateway,
-                  isActive: toggleGateway.gateway.isActive,
-                  updatedAt: toggleGateway.gateway.updatedAt,
-                }
-              : gateway,
-          )
-          cache.writeQuery({
-            query: GET_ALL_GATEWAYS,
-            data: {
-              allGateways: updatedGateways,
-            },
-          })
-        }
-      }
-    },
-  })
+  } = useMutation(TOGGLE_GATEWAY_STATUS)
 
-  // helper
-  const getAllGateways = () => {
-    return gateways.value
+  const nextPage = () => {
+    if (hasNextPage.value) {
+      currentPage.value++
+    }
   }
 
-  const getGatewayById = (id) => {
-    return gateways.value.find((gateway) => gateway.id === id)
+  const previousPage = () => {
+    if (hasPreviousPage.value) {
+      currentPage.value--
+    }
   }
 
+  // بجای refetch، فقط filters را تغییر می‌دهیم
+  const searchGateways = (query) => {
+    filters.value.search = query
+    filters.value.addressContains = ''
+    filters.value.portMin = null
+    filters.value.portMax = null
+    filters.value.isActive = null
+    currentPage.value = 1
+    // refetch حذف شد چون computed properties خودکار انجامش می‌دهند
+  }
+
+  const filterGateways = (options) => {
+    filters.value = { ...filters.value, ...options, search: '' }
+    currentPage.value = 1
+    // refetch حذف شد چون computed properties خودکار انجامش می‌دهند
+  }
+
+  const resetFilters = () => {
+    filters.value = {
+      isActive: null,
+      addressContains: '',
+      portMin: null,
+      portMax: null,
+      search: '',
+    }
+    currentPage.value = 1
+  }
+
+  // helper methods
   const createNewGateway = async (gatewaysData) => {
     try {
-      const { data } = await createGateway({
-        input: gatewaysData,
-      })
-
+      const { data } = await createGateway({ input: gatewaysData })
       if (data.createGateway.success) {
-        return {
-          success: true,
-          gateway: data.createGateway.gateway,
-          message: data.createGateway.message,
-        }
-      } else {
-        return {
-          success: false,
-          message: data.createGateway.message,
-        }
+        await refetch() 
+        return { success: true, gateway: data.createGateway.gateway, message: data.createGateway.message }
       }
+      return { success: false, message: data.createGateway.message }
     } catch (error) {
-      return {
-        success: false,
-        message: error.message,
-      }
+      return { success: false, message: error.message }
     }
   }
 
   const updateExistingGateway = async (id, updateData) => {
     try {
-      const { data } = await updateGateway({
-        id,
-        input: updateData,
-      })
-
+      const { data } = await updateGateway({ id, input: updateData })
       if (data.updateGateway.success) {
-        return {
-          success: true,
-          gateway: data.updateGateway.gateway,
-          message: data.updateGateway.message,
-        }
-      } else {
-        return {
-          success: false,
-          message: data.updateGateway.message,
-        }
+        await refetch()
+        return { success: true, gateway: data.updateGateway.gateway, message: data.updateGateway.message }
       }
+      return { success: false, message: data.updateGateway.message }
     } catch (error) {
-      return {
-        success: false,
-        message: error.message,
-      }
+      return { success: false, message: error.message }
     }
   }
 
   const deleteGatewayById = async (id) => {
     try {
-      const { data } = await deleteGateway({
-        id: id.toString(),
-      })
-
+      const { data } = await deleteGateway({ id: id.toString() })
       if (data.deleteGateway.success) {
-        return {
-          success: true,
-          gateway: data.deleteGateway.gateway,
-          message: data.deleteGateway.message,
-        }
-      } else {
-        return {
-          success: false,
-          message: data.deleteGateway.message,
-        }
+        await refetch()
+        return { success: true, message: data.deleteGateway.message }
       }
+      return { success: false, message: data.deleteGateway.message }
     } catch (error) {
-      return {
-        success: false,
-        message: error.message,
-      }
+      return { success: false, message: error.message }
     }
   }
 
   const toggleStatus = async (id) => {
     try {
-      const { data } = await toggleGatewayStatus({
-        id,
-      })
-
+      const { data } = await toggleGatewayStatus({ id })
       if (data.toggleGateway.success) {
-        return {
-          success: true,
-          gateway: data.toggleGateway.gateway,
-          message: data.toggleGateway.message,
-        }
-      } else {
-        return {
-          success: false,
-          message: data.toggleGateway.message,
-        }
+        await refetch()
+        return { success: true, gateway: data.toggleGateway.gateway, message: data.toggleGateway.message }
       }
+      return { success: false, message: data.toggleGateway.message }
     } catch (error) {
-      return {
-        success: false,
-        message: error.message,
-      }
+      return { success: false, message: error.message }
     }
   }
 
-  const searchGatewaysByQuery = (query) => {
-    filters.value.search = query
-    return searchGateways()
-  }
-
-  const filterGatewaysByOptions = (filterOptions) => {
-    filters.value = { ...filters.value, ...filterOptions }
-    return filterGateways()
-  }
-
-  // const getGatewayStats = computed(() => {
-  //   const total = gateways.value.length
-  //   const online = gateways.value.filter(g => g.isActive).length
-  //   const offline = total - online
-
-  //   return {
-  //     total,
-  //     online,
-  //     offline,
-  //     onlinePercentage: total > 0 ? Math.round((online / total) * 100) : 0
-  //   }
-  // })
-
-  // loading states
   const isLoading = computed(
-    () =>
-      gatewaysLoading.value ||
-      createLoading.value ||
-      updateLoading.value ||
-      deleteLoading.value ||
-      toggleLoading.value,
+    () => gatewaysLoading.value || createLoading.value || updateLoading.value || deleteLoading.value || toggleLoading.value,
   )
 
-  // error states
   const hasError = computed(
-    () =>
-      gatewaysError.value ||
-      createError.value ||
-      updateError.value ||
-      deleteError.value ||
-      toggleError.value,
+    () => gatewaysError.value || createError.value || updateError.value || deleteError.value || toggleError.value,
   )
 
   return {
-    // data
     gateways,
-    filters,
-
-    // loading states
+    totalCount,
+    pageSize,
+    currentPage,
     isLoading,
-    gatewaysLoading,
-    createLoading,
-    updateLoading,
-    deleteLoading,
-    toggleLoading,
-
-    // error states
+    createLoading, // جداگانه export کردیم
     hasError,
-    gatewaysError,
-    createError,
-    updateError,
-    deleteError,
-    toggleError,
-
-    // stats
-    //getGatewayStats,
-
-    // methods
-    getAllGateways,
-    getGatewayById,
+    hasNextPage,
+    hasPreviousPage,
+    nextPage,
+    previousPage,
+    searchGateways,
+    filterGateways,
+    resetFilters,
     createNewGateway,
     updateExistingGateway,
     deleteGatewayById,
     toggleStatus,
-    searchGatewaysByQuery,
-    filterGatewaysByOptions,
-    refetchGateways,
+    refetch
   }
 }
