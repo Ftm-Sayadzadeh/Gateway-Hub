@@ -45,14 +45,11 @@
 
           <!-- Main Content Grid -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Network Configuration -->
             <GatewayNetworkConfig :gateway="gateway" />
 
-            <!-- Gateway Information -->
             <GatewayInformation :gateway="gateway" />
           </div>
 
-          <!-- Description (if exists) -->
           <GatewayDescription 
             :gateway="gateway" 
             show-additional-info
@@ -173,7 +170,7 @@ export default {
       hideToast 
     } = useToast()
 
-    // Computed property to extract gateway data
+    // extract gateway data
     const gateway = computed(() => result.value?.gateway)
 
     // Methods
@@ -183,7 +180,6 @@ export default {
         const { data } = await toggleGatewayStatus({ id: gatewayId })
         if (data?.toggleGateway?.success) {
           showSuccess(data.toggleGateway.message)
-          // Update gateway timestamp
           if (gateway.value) {
             gateway.value.updatedAt = new Date().toISOString()
           }
@@ -201,7 +197,7 @@ export default {
         const { data } = await deleteGatewayById({ id: gatewayId })
         if (data?.deleteGateway?.success) {
           showSuccess(data.deleteGateway.message)
-          // Navigate back after successful deletion
+          // Navigate back
           setTimeout(() => {
             router.push('/gateway-list')
           }, 2000)
@@ -253,7 +249,6 @@ export default {
 </script>
 
 <style scoped>
-/* Any additional styles specific to this page */
 .text-warning { color: var(--color-warning); }
 .text-success { color: var(--color-success); }
 .text-secondary { color: var(--color-text-secondary); }
