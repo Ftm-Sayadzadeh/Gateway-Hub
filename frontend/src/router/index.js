@@ -36,12 +36,12 @@ const router = createRouter({
     //   name: 'EditGateway',
     //   component: () => import('@/views/EditGateway.vue'),
     // },
-  //   {
-  //     path: '/gateway/create',
-  //     name: 'CreateGateway',
-  //     component: CreateGatewayForm,
-  //   },
-  // ],
+    // {
+    //   path: '/gateway/create',
+    //   name: 'CreateGateway',
+    //   component: CreateGatewayForm,
+    // },
+  ],
 })
 
 export default router
