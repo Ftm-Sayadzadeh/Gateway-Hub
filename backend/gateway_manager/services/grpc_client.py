@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor
 from django.conf import settings
 
-from ..protobuf import gateway_agent_pb2, gateway_agent_pb2_grpc
+from ..protobuf import gateway_agent_pb2, gateway_agent_pb2_grpc, LogType
 
 logger = logging.getLogger(__name__)
 
