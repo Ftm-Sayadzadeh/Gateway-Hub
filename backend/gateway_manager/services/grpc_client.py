@@ -7,9 +7,14 @@ from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor
 from django.conf import settings
 
-from ..protobuf import gateway_agent_pb2, gateway_agent_pb2_grpc, LogType
+from ..protobuf import gateway_agent_pb2, gateway_agent_pb2_grpc
 
 logger = logging.getLogger(__name__)
+
+class LogType:
+    CONTROLLER = 0
+    SETTING = 1
+    GATEWAY_AGENT = 2
 
 class GatewayGRPCClient:
     def __init__(self, gateway_address: str, gateway_port: int, timeout: int=10):
@@ -18,7 +23,7 @@ class GatewayGRPCClient:
         self.timeout = timeout
         self.connection_string = f"{gateway_address}:{gateway_port}"
         self._streaming_connections = {}
-        self._connection_lock = threading.Lock()
+        self._connection_lock = threading.Lock() # Only one thread can change the dictionary at a time.
 
     @contextmanager
     def get_channel(self):
@@ -29,9 +34,9 @@ class GatewayGRPCClient:
                 options=[
                     ('grpc.keepalive_time_ms', 30000),
                     ('grpc.keepalive_timeout_ms', 5000),
-                    ('grpc.keepalive_permit_without_calls', True),
+                    ('grpc.keepalive_permit_without_calls', True), # live log -> long stream
                     ('grpc.http2.max_pings_without_data', 0),
-                    ('grpc.http2.min_time_between_pings_ms', 10000),
+                    ('grpc.http2.min_time_between_pings_ms', 10000), # Dos
                     ('grpc.http2.min_ping_interval_without_data_ms', 300000)
                 ]
             )
