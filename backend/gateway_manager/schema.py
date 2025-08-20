@@ -3,6 +3,7 @@ from graphene_django import DjangoObjectType
 from django.core.exceptions import ValidationError
 from django.db import models
 from .models import Gateway
+from .subscriptions import Subscription
 
 
 # gateway type
@@ -292,4 +293,4 @@ class Mutation(graphene.ObjectType):
     delete_gateway = DeleteGateway.Field()
     toggle_gateway = ToggleGatewayStatus.Field()
 
-Schema = graphene.Schema(query=Query, mutation=Mutation)
+Schema = graphene.Schema(query=Query, mutation=Mutation, subscription=Subscription)

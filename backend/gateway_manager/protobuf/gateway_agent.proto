@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package keyhan.gateway_agent_messages;
+
+enum LogType {
+    CONTROLLER = 0;
+    SETTING = 1;
+    GATEWAY_AGENT = 2;
+}
+
+message LiveLogsRequest {
+    LogType type = 1;
+    string traffic_log_index = 2;
+    uint32 line_count = 3;
+}
+
+message LiveLogsResponse {
+    string log = 1;
+}
+
+message UptimeResponse {
+    string uptime = 1;
+}
+
+message CpuUsageResponse {
+    string cpu_usage = 1;
+}
+
+message MemoryUsageResponse {
+    string memory_usage = 1;
+}
+
+message NullRequest {}
+message NullResponse {}
+
+service GatewayAgent {
+    rpc Uptime (NullRequest) returns (UptimeResponse) {}
+    rpc CpuUsage (NullRequest) returns (CpuUsageResponse) {}
+    rpc MemoryUsage (NullRequest) returns (MemoryUsageResponse) {}
+    rpc ReadLiveLogs (LiveLogsRequest) returns (stream LiveLogsResponse) {}
+}
