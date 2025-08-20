@@ -3,9 +3,9 @@ from unittest.mock import Mock, patch, MagicMock
 from concurrent.futures import Future
 import grpc
 
-from backend.gateway_manager.services.grpc_client import GatewayGRPCClient, GatewayGRPCManager
-from backend.gateway_manager.protobuf import gateway_agent_pb2 as pb2
-from backend.gateway_manager.protobuf import gateway_agent_pb2_grpc as pb2_grpc
+from gateway_manager.services.grpc_client import GatewayGRPCClient, GatewayGRPCManager
+from gateway_manager.protobuf import gateway_agent_pb2 as pb2
+from gateway_manager.protobuf import gateway_agent_pb2_grpc as pb2_grpc
 
 
 # Mock GatewayAgentStub
@@ -30,9 +30,9 @@ class TestGatewayGRPCClient(unittest.TestCase):
     def setUp(self):
         self.client = GatewayGRPCClient("localhost", 50051)
 
-    @patch('backend.gateway_manager.services.grpc_client.grpc.channel_ready_future')
-    @patch('backend.gateway_manager.services.grpc_client.grpc.insecure_channel')
-    @patch('backend.gateway_manager.services.grpc_client.gateway_agent_pb2_grpc.GatewayAgentStub')
+    @patch('gateway_manager.services.grpc_client.grpc.channel_ready_future')
+    @patch('gateway_manager.services.grpc_client.grpc.insecure_channel')
+    @patch('gateway_manager.services.grpc_client.gateway_agent_pb2_grpc.GatewayAgentStub')
     def test_get_uptime_success(self, MockStub, MockChannel, MockChannelReady):
         mock_stub_instance = MockGatewayAgentStub()
         MockStub.return_value = mock_stub_instance
@@ -50,8 +50,8 @@ class TestGatewayGRPCClient(unittest.TestCase):
         MockStub.assert_called_once_with(mock_channel) # create stub and channel connected successfully?
         MockChannel.assert_called_once()
 
-    @patch('backend.gateway_manager.services.grpc_client.grpc.channel_ready_future')
-    @patch('backend.gateway_manager.services.grpc_client.grpc.insecure_channel')
+    @patch('gateway_manager.services.grpc_client.grpc.channel_ready_future')
+    @patch('gateway_manager.services.grpc_client.grpc.insecure_channel')
     def test_get_uptime_failure(self, MockChannel, MockChannelReady):
         mock_future = Mock()
         mock_future.result.side_effect = grpc.RpcError("Connection Failed")  # ready to raise exception
@@ -62,8 +62,8 @@ class TestGatewayGRPCClient(unittest.TestCase):
         self.assertIsNone(uptime)
         MockChannel.assert_called_once()
 
-    @patch('backend.gateway_manager.services.grpc_client.GatewayGRPCClient.create_streaming_connection')
-    @patch('backend.gateway_manager.services.grpc_client.gateway_agent_pb2_grpc.GatewayAgentStub')
+    @patch('gateway_manager.services.grpc_client.GatewayGRPCClient.create_streaming_connection')
+    @patch('gateway_manager.services.grpc_client.gateway_agent_pb2_grpc.GatewayAgentStub')
     def test_read_live_logs_stream(self, MockStub, mock_create_channel):
         mock_stub_instance = MockGatewayAgentStub()
         MockStub.return_value = mock_stub_instance
@@ -78,9 +78,9 @@ class TestGatewayGRPCClient(unittest.TestCase):
         self.assertEqual(logs, ["Log line 1", "Log line 2", "Log line 3"])
         mock_create_channel.assert_called_once_with("test-stream-1")
 
-    @patch('backend.gateway_manager.services.grpc_client.grpc.channel_ready_future')
-    @patch('backend.gateway_manager.services.grpc_client.grpc.insecure_channel')
-    @patch('backend.gateway_manager.services.grpc_client.gateway_agent_pb2_grpc.GatewayAgentStub')
+    @patch('gateway_manager.services.grpc_client.grpc.channel_ready_future')
+    @patch('gateway_manager.services.grpc_client.grpc.insecure_channel')
+    @patch('gateway_manager.services.grpc_client.gateway_agent_pb2_grpc.GatewayAgentStub')
     def test_get_system_info_success(self, MockStub, MockChannel, MockChannelReady):
         mock_stub_instance = MockGatewayAgentStub()
         MockStub.return_value = mock_stub_instance
@@ -107,7 +107,7 @@ class TestGatewayGRPCManager(unittest.TestCase):
         self.manager = GatewayGRPCManager()
         self.manager.clients = {}  # clean state
 
-    @patch('backend.gateway_manager.services.grpc_client.GatewayGRPCClient')
+    @patch('gateway_manager.services.grpc_client.GatewayGRPCClient')
     def test_get_client_creates_new(self, MockClient):
         mock_client_instance = Mock()
         MockClient.return_value = mock_client_instance
@@ -118,7 +118,7 @@ class TestGatewayGRPCManager(unittest.TestCase):
         self.assertEqual(self.manager.clients.get("1.2.3.4:50051"), mock_client_instance) # dic?
         self.assertEqual(client, mock_client_instance)
 
-    @patch('backend.gateway_manager.services.grpc_client.GatewayGRPCClient')
+    @patch('gateway_manager.services.grpc_client.GatewayGRPCClient')
     def test_get_client_returns_existing(self, MockClient):
         existing_client = Mock()
         self.manager.clients["1.2.3.4:50051"] = existing_client
@@ -156,7 +156,7 @@ class TestGatewayGRPCManager(unittest.TestCase):
             self.assertEqual(results["1"]["uptime"], "1d")
             self.assertEqual(results["2"]["uptime"], "2d")
 
-    @patch('backend.gateway_manager.services.grpc_client.GatewayGRPCClient')
+    @patch('gateway_manager.services.grpc_client.GatewayGRPCClient')
     def test_test_gateway_connection_success(self, MockClient):
         mock_client_instance = Mock()
         mock_client_instance.test_connection.return_value = True # connected successfully
@@ -167,7 +167,7 @@ class TestGatewayGRPCManager(unittest.TestCase):
         self.assertTrue(result)
         mock_client_instance.test_connection.assert_called_once()
 
-    @patch('backend.gateway_manager.services.grpc_client.GatewayGRPCClient')
+    @patch('gateway_manager.services.grpc_client.GatewayGRPCClient')
     def test_test_gateway_connection_failure(self, MockClient):
         mock_client_instance = Mock()
         mock_client_instance.test_connection.return_value = False
@@ -178,7 +178,7 @@ class TestGatewayGRPCManager(unittest.TestCase):
         self.assertFalse(result)
         mock_client_instance.test_connection.assert_called_once()
 
-    @patch('backend.gateway_manager.services.grpc_client.GatewayGRPCClient')
+    @patch('gateway_manager.services.grpc_client.GatewayGRPCClient')
     def test_start_live_logs_stream(self, MockClient):
         mock_client_instance = Mock()
         mock_generator = iter(["log1", "log2", "log3"])
@@ -205,6 +205,7 @@ class TestGatewayGRPCManager(unittest.TestCase):
         # verify all clients had their connections closed
         mock_client_1.close_all_streaming_connections.assert_called_once()
         mock_client_2.close_all_streaming_connections.assert_called_once()
+        
         # Verify clients dict is cleared
         self.assertEqual(len(self.manager.clients), 0)
 
