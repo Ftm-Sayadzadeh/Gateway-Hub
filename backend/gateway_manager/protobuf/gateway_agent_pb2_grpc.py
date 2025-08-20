@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import backend.gateway_manager.protobuf.gateway_agent_pb2 as gateway__agent__pb2
+import gateway_manager.protobuf.gateway_agent_pb2 as gateway__agent__pb2
 
 GRPC_GENERATED_VERSION = '1.74.0'
 GRPC_VERSION = grpc.__version__
