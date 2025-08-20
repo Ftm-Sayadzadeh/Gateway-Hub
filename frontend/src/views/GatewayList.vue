@@ -139,9 +139,9 @@
 <script>
 import { ref, watch, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import FilterSection from '@/components/FilterSection.vue'
-import GatewayTable from '@/components/GatewayTable.vue'
-import GatewayGrid from '@/components/GatewayGrid.vue'
+import FilterSection from '@/components/gatewaysList/FilterSection.vue'
+import GatewayTable from '@/components/gatewaysList/GatewayTable.vue'
+import GatewayGrid from '@/components/gatewaysList/GatewayGrid.vue'
 import { useGatewaysGraphQL } from '@/composables/useGatewaysGraphQL'
 
 export default {
