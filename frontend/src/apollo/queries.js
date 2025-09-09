@@ -140,3 +140,31 @@ export const TOGGLE_GATEWAY_STATUS = gql`
     }
   }
 `
+
+export const GATEWAY_SYSTEM_INFO_SUB = gql`
+  subscription GatewaySystemInfo($gatewayId: ID!) {
+    gatewaySystemInfo(gatewayId: $gatewayId) {
+      gatewayId
+      gatewayAddress
+      gatewayPort
+      uptime
+      cpuUsage
+      memoryUsage
+      status
+      timestamp
+    }
+  }
+`
+
+export const GATEWAY_LIVE_LOGS_SUB = gql`
+  subscription GatewayLiveLogs($gatewayId: ID!, $logType: Int, $lineCount: Int) {
+    gatewayLiveLogs(gatewayId: $gatewayId, logType: $logType, lineCount: $lineCount) {
+      gatewayId
+      timestamp
+      logLevel
+      serviceType
+      message
+      lineNumber
+    }
+  }
+`
