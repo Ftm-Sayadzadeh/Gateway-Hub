@@ -2,7 +2,7 @@
   <div class="card">
     <div class="card-header">
       <div class="flex items-center">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4"
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4 mb-6"
              style="background: var(--color-brand-light);">
           <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 

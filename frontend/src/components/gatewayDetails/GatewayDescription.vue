@@ -3,7 +3,7 @@
     <div class="card-header">
       <div class="flex items-center justify-between">
         <div class="flex items-center">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3"
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-3 mb-4"
                style="background: var(--color-info-light);">
             <svg class="w-5 h-5 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
