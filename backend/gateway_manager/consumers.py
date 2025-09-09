@@ -61,8 +61,11 @@ class GraphQLWebSocketConsumer(AsyncWebsocketConsumer):
         query = payload.get('query')
         variables = payload.get('variables', {})
         
+        logger.info(f"Starting subscription {subscription_id} with query: {query}")
+        logger.info(f"Variables: {variables}")
+        
         if not query or not subscription_id:
-            await self.send_error("Missing query or subscription ID")
+            await self.send_error("Missing query or subscription ID", subscription_id)
             return
 
         try:
@@ -70,7 +73,8 @@ class GraphQLWebSocketConsumer(AsyncWebsocketConsumer):
             validation_errors = validate(schema, document)
             
             if validation_errors:
-                await self.send_error(f"Validation errors: {validation_errors}")
+                logger.error(f"Validation errors: {validation_errors}")
+                await self.send_error(f"Validation errors: {validation_errors}", subscription_id)
                 return
 
             # store
@@ -81,37 +85,64 @@ class GraphQLWebSocketConsumer(AsyncWebsocketConsumer):
             }
 
             # execute
+            context = {
+                'consumer': self, 
+                'subscription_id': subscription_id,
+                'channel_name': self.channel_name
+            }
+            
+            logger.info(f"Executing subscription with context: {context}")
+            
             result = await schema.execute_async(
                 document,
                 variable_values=variables,
-                context_value={'consumer': self, 'subscription_id': subscription_id}  # has gotten by resolver -> send response to this client
+                context_value=context
             )
 
             if result.errors:
-                await self.send_error(f"Execution errors: {result.errors}")
+                logger.error(f"Execution errors: {result.errors}")
+                await self.send_error(f"Execution errors: {result.errors}", subscription_id)
                 return
 
+            if result.data:
+                logger.info(f"Sending initial data for subscription {subscription_id}: {result.data}")
+                await self.send_message({
+                    'type': 'data',
+                    'id': subscription_id,
+                    'payload': {'data': result.data}
+                })
+            else:
+                logger.warning(f"No initial data for subscription {subscription_id}")
+
         except Exception as e:
-            logger.error(f"Subscription start error: {e}")
-            await self.send_error(str(e))
+            logger.error(f"Subscription start error: {e}", exc_info=True)
+            await self.send_error(str(e), subscription_id)
 
     async def handle_subscription_stop(self, message):
         subscription_id = message.get('id')
         if subscription_id in self.subscriptions:
             del self.subscriptions[subscription_id]
+            logger.info(f"Stopped subscription {subscription_id}")
 
     async def send_message(self, message):
-        await self.send(text_data=json.dumps(message)) # dict => JSON
+        logger.debug(f"Sending WebSocket message: {message}")
+        await self.send(text_data=json.dumps(message))
 
-    async def send_error(self, error_message):
-        await self.send_message({
+    async def send_error(self, error_message, subscription_id=None):
+        error_msg = {
             'type': 'error',
             'payload': {'message': error_message}
-        })
+        }
+        if subscription_id:
+            error_msg['id'] = subscription_id
+            
+        await self.send_message(error_msg)
 
-    async def send_subscription_data(self, event): # event by channel layer or schema -> client (graphql-ws)
+    async def send_subscription_data(self, event):
         subscription_id = event.get('subscription_id') 
         data = event.get('data')
+        
+        logger.debug(f"Sending subscription data for {subscription_id}: {data}")
         
         if subscription_id and data:
             await self.send_message({
@@ -135,10 +166,13 @@ class GraphQLWebSocketConsumer(AsyncWebsocketConsumer):
 
     # message handlers
     async def gateway_system_info(self, event):
+        logger.debug(f"Received gateway_system_info event: {event}")
         await self.send_subscription_data(event)
 
     async def gateway_live_logs(self, event):
+        logger.debug(f"Received gateway_live_logs event: {event}")
         await self.send_subscription_data(event)
 
     async def gateway_status_change(self, event):
+        logger.debug(f"Received gateway_status_change event: {event}")
         await self.send_subscription_data(event)
