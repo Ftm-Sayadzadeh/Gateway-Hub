@@ -22,7 +22,23 @@ INSTALLED_APPS = [
     'corsheaders',
     # Local apps
     'gateway_manager',
+    # channels
+    'channels'
 ]
+
+# ASGI Configuration
+ASGI_APPLICATION = 'gateway_project.asgi.application'
+
+# Channel Layers for WebSocket
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -93,6 +109,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ### GraphQL & Graphene Settings
 GRAPHENE = {
     'SCHEMA': 'gateway_project.schema.schema',
+    'SCHEMA_OUTPUT': 'data/schema.json',
+    'SCHEMA_INDENT': 2,
+    'MIDDLEWARE': [],
+    'SUBSCRIPTION_PATH': '/graphql/subscriptions/',
 }
 
 ### CORS Headers Configuration
