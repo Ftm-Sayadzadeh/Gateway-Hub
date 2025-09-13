@@ -80,45 +80,42 @@ def parse_uptime(uptime_string):
         logger.warning(f"Could not parse uptime '{uptime_string}': {e}")
         return "Unknown"
 
-# def get_clean_system_info(raw_info):
-#     """
-#     Process raw gRPC system info and return clean data
-#     """
-#     try:
-#         cpu_raw = raw_info.get('cpu_usage', '')
-#         memory_raw = raw_info.get('memory_usage', '')
-#         uptime_raw = raw_info.get('uptime', '')
+def get_clean_system_info(raw_info):
+    try:
+        cpu_raw = raw_info.get('cpu_usage', '')
+        memory_raw = raw_info.get('memory_usage', '')
+        uptime_raw = raw_info.get('uptime', '')
         
-#         # Parse individual components
-#         cpu_percent = parse_cpu_usage(cpu_raw)
-#         memory_percent = parse_memory_usage(memory_raw)
-#         uptime_formatted = parse_uptime(uptime_raw)
+        # Parse individual components
+        cpu_percent = parse_cpu_usage(cpu_raw)
+        memory_percent = parse_memory_usage(memory_raw)
+        uptime_formatted = parse_uptime(uptime_raw)
         
-#         return {
-#             # Raw strings (for debugging)
-#             'cpu_usage_raw': cpu_raw,
-#             'memory_usage_raw': memory_raw,
-#             'uptime_raw': uptime_raw,
+        return {
+            # Raw strings (for debugging)
+            'cpu_usage_raw': cpu_raw,
+            'memory_usage_raw': memory_raw,
+            'uptime_raw': uptime_raw,
             
-#             # Parsed values
-#             'cpu_usage_percent': cpu_percent,
-#             'memory_usage_percent': memory_percent,
-#             'uptime_formatted': uptime_formatted,
+            # Parsed values
+            'cpu_usage_percent': cpu_percent,
+            'memory_usage_percent': memory_percent,
+            'uptime_formatted': uptime_formatted,
             
-#             # Formatted for display
-#             'cpu_usage_display': f"{cpu_percent}%" if cpu_percent is not None else "N/A",
-#             'memory_usage_display': f"{memory_percent}%" if memory_percent is not None else "N/A",
-#             'uptime_display': uptime_formatted,
+            # Formatted for display
+            'cpu_usage_display': f"{cpu_percent}%" if cpu_percent is not None else "N/A",
+            'memory_usage_display': f"{memory_percent}%" if memory_percent is not None else "N/A",
+            'uptime_display': uptime_formatted,
             
-#             # Other fields
-#             'gateway_address': raw_info.get('gateway_address'),
-#             'gateway_port': raw_info.get('gateway_port'),
-#             'connection_string': raw_info.get('connection_string'),
-#             'status': raw_info.get('status'),
-#             'timestamp': raw_info.get('timestamp'),
-#             'error': raw_info.get('error')
-#         }
+            # Other fields
+            'gateway_address': raw_info.get('gateway_address'),
+            'gateway_port': raw_info.get('gateway_port'),
+            'connection_string': raw_info.get('connection_string'),
+            'status': raw_info.get('status'),
+            'timestamp': raw_info.get('timestamp'),
+            'error': raw_info.get('error')
+        }
         
-#     except Exception as e:
-#         logger.error(f"Error processing system info: {e}")
-#         return raw_info 
+    except Exception as e:
+        logger.error(f"Error processing system info: {e}")
+        return raw_info 
