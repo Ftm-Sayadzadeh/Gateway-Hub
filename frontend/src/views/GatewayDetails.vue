@@ -160,7 +160,7 @@ export default {
     const showToggleConfirm = ref(false)
 
     // Composables
-    const { metrics } = useGatewayMetrics()
+    const { metrics } = useGatewayMetrics(gatewayId)
     const { 
       toastMessage, 
       toastType, 

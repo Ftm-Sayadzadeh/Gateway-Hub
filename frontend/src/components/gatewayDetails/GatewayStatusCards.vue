@@ -44,8 +44,8 @@
             />
           </svg>
           <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-xl font-bold" :class="getUsageTextColor(metrics.cpuUsage, 'cpu')">
-              {{ metrics.cpuUsage }}%
+            <span class="text-md font-bold" :class="getUsageTextColor(metrics.cpuUsage, 'cpu')">
+              {{ metrics.cpuUsage }}
             </span>
           </div>
         </div>
@@ -76,8 +76,8 @@
             />
           </svg>
           <div class="absolute inset-0 flex items-center justify-center">
-            <span class="text-xl font-bold" :class="getUsageTextColor(metrics.memoryUsage, 'memory')">
-              {{ metrics.memoryUsage }}%
+            <span class="text-md font-bold" :class="getUsageTextColor(metrics.memoryUsage, 'memory')">
+              {{ metrics.memoryUsage }}
             </span>
           </div>
         </div>

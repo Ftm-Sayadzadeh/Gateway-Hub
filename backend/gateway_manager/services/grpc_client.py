@@ -22,6 +22,7 @@ class GatewayGRPCClient:
         self.gateway_port = gateway_port
         self.timeout = timeout
         self.connection_string = f"{gateway_address}:{gateway_port}"
+        self.FIXED_CONNECTIONS_STRING="192.168.117.131:2425"
         self._streaming_connections = {}
         self._connection_lock = threading.Lock() # Only one thread can change the dictionary at a time.
 
@@ -30,7 +31,7 @@ class GatewayGRPCClient:
         channel = None
         try:
             channel = grpc.insecure_channel(
-                self.connection_string,
+                self.FIXED_CONNECTIONS_STRING,
                 options=[
                     ('grpc.keepalive_time_ms', 30000),
                     ('grpc.keepalive_timeout_ms', 5000),
@@ -42,15 +43,15 @@ class GatewayGRPCClient:
             )
             
             grpc.channel_ready_future(channel).result(timeout=self.timeout)
-            logger.debug(f"Connected to gateway at {self.connection_string}")
+            logger.debug(f"Connected to gateway at {self.FIXED_CONNECTIONS_STRING}")
             
             yield channel
             
         except grpc.RpcError as e:
-            logger.error(f"gRPC Error connecting to {self.connection_string}: {e}")
+            logger.error(f"gRPC Error connecting to {self.FIXED_CONNECTIONS_STRING}: {e}")
             raise
         except Exception as e:
-            logger.error(f"Connection error to {self.connection_string}: {e}")
+            logger.error(f"Connection error to {self.FIXED_CONNECTIONS_STRING}: {e}")
             raise
         finally:
             if channel:
@@ -62,10 +63,10 @@ class GatewayGRPCClient:
                 stub = gateway_agent_pb2_grpc.GatewayAgentStub(channel)
                 request = gateway_agent_pb2.NullRequest()
                 response = stub.Uptime(request, timeout=self.timeout)
-                logger.debug(f"Uptime received from {self.connection_string}: {response.uptime}")
+                logger.debug(f"Uptime received from {self.FIXED_CONNECTIONS_STRING}: {response.uptime}")
                 return response.uptime
         except Exception as e:
-            logger.error(f"Error getting uptime from {self.connection_string}: {e}")
+            logger.error(f"Error getting uptime from {self.FIXED_CONNECTIONS_STRING}: {e}")
             return None
     
     def get_cpu_usage(self) -> Optional[str]:
@@ -74,10 +75,10 @@ class GatewayGRPCClient:
                 stub = gateway_agent_pb2_grpc.GatewayAgentStub(channel)
                 request = gateway_agent_pb2.NullRequest()
                 response = stub.CpuUsage(request, timeout=self.timeout)
-                logger.debug(f"CPU usage received from {self.connection_string}: {response.cpu_usage}")
+                logger.debug(f"CPU usage received from {self.FIXED_CONNECTIONS_STRING}: {response.cpu_usage}")
                 return response.cpu_usage
         except Exception as e:
-            logger.error(f"Error getting CPU usage from {self.connection_string}: {e}")
+            logger.error(f"Error getting CPU usage from {self.FIXED_CONNECTIONS_STRING}: {e}")
             return None 
 
     def get_memory_usage(self) -> Optional[str]:
@@ -86,10 +87,10 @@ class GatewayGRPCClient:
                 stub = gateway_agent_pb2_grpc.GatewayAgentStub(channel)
                 request = gateway_agent_pb2.NullRequest()
                 response = stub.MemoryUsage(request, timeout=self.timeout)
-                logger.debug(f"Memory usage received from {self.connection_string}: {response.memory_usage}")
+                logger.debug(f"Memory usage received from {self.FIXED_CONNECTIONS_STRING}: {response.memory_usage}")
                 return response.memory_usage
         except Exception as e:
-            logger.error(f"Error getting memory usage from {self.connection_string}: {e}")
+            logger.error(f"Error getting memory usage from {self.FIXED_CONNECTIONS_STRING}: {e}")
             return None
         
     def get_system_info(self) -> Dict[str, Any]:
@@ -114,7 +115,7 @@ class GatewayGRPCClient:
                 info['status'] = 'online'
                 
         except Exception as e:
-            logger.error(f"Error getting system info from {self.connection_string}: {e}")
+            logger.error(f"Error getting system info from {self.FIXED_CONNECTIONS_STRING}: {e}")
             info['error'] = str(e)
         
         return info
@@ -127,7 +128,7 @@ class GatewayGRPCClient:
                     return self._streaming_connections[stream_id]
                 
                 channel = grpc.insecure_channel(
-                    self.connection_string,
+                    self.FIXED_CONNECTIONS_STRING,
                     options=[
                         ('grpc.keepalive_time_ms', 30000),
                         ('grpc.keepalive_timeout_ms', 5000),
@@ -141,11 +142,11 @@ class GatewayGRPCClient:
                 grpc.channel_ready_future(channel).result(timeout=self.timeout)
                 
                 self._streaming_connections[stream_id] = channel
-                logger.info(f"Created streaming connection {stream_id} to {self.connection_string}")
+                logger.info(f"Created streaming connection {stream_id} to {self.FIXED_CONNECTIONS_STRING}")
                 return channel
                 
         except Exception as e:
-            logger.error(f"Error creating streaming connection to {self.connection_string}: {e}")
+            logger.error(f"Error creating streaming connection to {self.FIXED_CONNECTIONS_STRING}: {e}")
             return None
     
     def close_streaming_connection(self, stream_id: str):
@@ -153,7 +154,7 @@ class GatewayGRPCClient:
             if stream_id in self._streaming_connections:
                 channel = self._streaming_connections.pop(stream_id)
                 channel.close()
-                logger.info(f"Closed streaming connection {stream_id} to {self.connection_string}")
+                logger.info(f"Closed streaming connection {stream_id} to {self.FIXED_CONNECTIONS_STRING}")
     
     def read_live_logs_stream(
         self, 
@@ -176,17 +177,17 @@ class GatewayGRPCClient:
                 line_count=line_count
             )
             
-            logger.info(f"Starting live logs stream {stream_id} for {self.connection_string}")
+            logger.info(f"Starting live logs stream {stream_id} for {self.FIXED_CONNECTIONS_STRING}")
             
             for response in stub.ReadLiveLogs(request):
                 yield response.log
                 
         except grpc.RpcError as e:
-            error_msg = f"gRPC streaming error for {self.connection_string}: {e}"
+            error_msg = f"gRPC streaming error for {self.FIXED_CONNECTIONS_STRING}: {e}"
             logger.error(error_msg)
             yield f"Error: {error_msg}"
         except Exception as e:
-            error_msg = f"Streaming error for {self.connection_string}: {e}"
+            error_msg = f"Streaming error for {self.FIXED_CONNECTIONS_STRING}: {e}"
             logger.error(error_msg)
             yield f"Error: {error_msg}"
         finally:
