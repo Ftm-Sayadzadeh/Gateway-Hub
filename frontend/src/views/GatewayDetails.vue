@@ -30,6 +30,7 @@
         <!-- Header Section -->
         <GatewayHeader
           :gateway="gateway"
+          :gateway-id="gatewayId"
           :loading="{ toggle: toggleLoading }"
           @toggle-status="showToggleConfirm = true"
           @edit="editGateway"
@@ -220,6 +221,7 @@ export default {
       // Data
       gateway,
       metrics,
+      gatewayId,
       
       // Loading states
       isLoading,
