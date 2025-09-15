@@ -135,7 +135,6 @@ export function useGatewaysGraphQL() {
     }
   }
 
-  // بجای refetch، فقط filters را تغییر می‌دهیم
   const searchGateways = (query) => {
     filters.value.search = query
     filters.value.addressContains = ''
@@ -143,13 +142,11 @@ export function useGatewaysGraphQL() {
     filters.value.portMax = null
     filters.value.isActive = null
     currentPage.value = 1
-    // refetch حذف شد چون computed properties خودکار انجامش می‌دهند
   }
 
   const filterGateways = (options) => {
     filters.value = { ...filters.value, ...options, search: '' }
     currentPage.value = 1
-    // refetch حذف شد چون computed properties خودکار انجامش می‌دهند
   }
 
   const resetFilters = () => {
@@ -230,7 +227,7 @@ export function useGatewaysGraphQL() {
     pageSize,
     currentPage,
     isLoading,
-    createLoading, // جداگانه export کردیم
+    createLoading,
     hasError,
     hasNextPage,
     hasPreviousPage,
