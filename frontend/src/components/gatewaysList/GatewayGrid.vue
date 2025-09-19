@@ -3,7 +3,8 @@
     <div
       v-for="gateway in gateways"
       :key="gateway.id"
-      class="group relative bg-white rounded-2xl border border-default shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 p-6"
+      @click="$emit('view-details', gateway.id)"
+      class="group relative bg-white rounded-2xl border border-default shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 p-6 cursor-pointer"
     >
       <!-- Header-->
       <div class="flex items-center justify-between mb-6">
@@ -60,10 +61,11 @@
         </div>
       </div>
 
-      <!-- Action -->
+      <!-- Action Buttons - FIXED WITH .stop -->
       <div class="flex space-x-2">
+        <!-- View Details Button -->
         <button 
-          @click="$emit('view-details', gateway.id)"
+          @click.stop="$emit('view-details', gateway.id)"
           class="btn btn-secondary flex-1 text-sm group"
           title="View Details"
         >
@@ -74,8 +76,9 @@
           View
         </button>
         
+        <!-- Edit Button -->
         <button 
-          @click="$emit('edit-gateway', gateway.id)"
+          @click.stop="$emit('edit-gateway', gateway.id)"
           class="btn btn-secondary flex-1 text-sm group hover:bg-brand-light hover:text-brand"
           title="Edit Gateway"
         >
@@ -85,14 +88,15 @@
           Edit
         </button>
         
+        <!-- Delete Button -->
         <button 
-          @click="$emit('delete-gateway', gateway.id)"
+          @click.stop="$emit('delete-gateway', gateway.id)"
           class="btn btn-secondary px-3 group hover:bg-danger-light hover:text-danger"
           title="Delete Gateway"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
         </button>
       </div>
     </div>
