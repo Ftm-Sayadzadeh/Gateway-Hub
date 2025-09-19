@@ -23,7 +23,8 @@ INSTALLED_APPS = [
     # Local apps
     'gateway_manager',
     # channels
-    'channels'
+    'channels',
+    'channels_redis'
 ]
 
 # ASGI Configuration
