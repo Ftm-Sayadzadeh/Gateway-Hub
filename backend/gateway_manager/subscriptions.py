@@ -45,11 +45,9 @@ class Subscription(graphene.ObjectType):
     )
 
     def resolve_gateway_system_info(self, info, gateway_id):
-        """Sync resolver برای system info subscription"""
         logger.info(f"resolve_gateway_system_info called with gateway_id: {gateway_id}")
         
         try:
-            # گرفتن gateway از database
             try:
                 gateway = Gateway.objects.get(id=gateway_id)
                 logger.info(f"Found gateway: {gateway.name} at {gateway.address}:{gateway.port}")
@@ -57,10 +55,8 @@ class Subscription(graphene.ObjectType):
                 logger.error(f"Gateway {gateway_id} not found")
                 raise Exception(f"Gateway {gateway_id} not found")
             
-            # گرفتن context از GraphQL و تشخیص نوع
             context = info.context
             
-            # بررسی نوع context (WebSocket vs HTTP)
             if hasattr(context, 'get'):
                 # WebSocket context (dictionary)
                 consumer = context.get('consumer')
@@ -77,9 +73,7 @@ class Subscription(graphene.ObjectType):
                 subscription_id = None
                 logger.warning(f"Unknown context type: {type(context)}")
 
-            # join به gateway group (فقط در WebSocket)
             if consumer:
-                # استفاده از asyncio برای اجرای async method
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 try:
@@ -90,27 +84,23 @@ class Subscription(graphene.ObjectType):
             else:
                 logger.info("No WebSocket consumer - skipping group join")
 
-            # گرفتن اطلاعات اولیه سیستم
             logger.info(f"Getting initial system info for gateway {gateway.address}:{gateway.port}")
             client = grpc_manager.get_client(gateway.address, gateway.port)
             system_info = client.get_system_info()
             
             logger.info(f"Raw system info received: {system_info}")
             
-            # Parse کردن داده‌ها با استفاده از parser های جداگانه
             cpu_percent = parse_cpu_usage(system_info.get('cpu_usage'))
             memory_percent = parse_memory_usage(system_info.get('memory_usage'))
             uptime_formatted = parse_uptime(system_info.get('uptime'))
             
             logger.info(f"Parsed data - CPU: {cpu_percent}%, Memory: {memory_percent}%, Uptime: {uptime_formatted}")
             
-            # شروع background monitoring (فقط در WebSocket)
             if consumer and subscription_id:
                 self._start_background_monitoring(gateway, consumer, subscription_id)
             else:
                 logger.info("No WebSocket consumer - skipping background monitoring")
             
-            # برگرداندن نتیجه اولیه با داده‌های parse شده
             result = SystemInfoType(
                 gateway_id=gateway.id,
                 gateway_address=system_info['gateway_address'],
@@ -128,7 +118,6 @@ class Subscription(graphene.ObjectType):
         
         except Exception as e:
             logger.error(f"Error in resolve_gateway_system_info: {e}", exc_info=True)
-            # برگرداندن اطلاعات خطا
             return SystemInfoType(
                 gateway_id=gateway_id,
                 gateway_address="",
@@ -142,9 +131,8 @@ class Subscription(graphene.ObjectType):
             )
    
     def resolve_gateway_live_logs(self, info, gateway_id, log_type=2, line_count=100):
-        """Sync resolver برای live logs subscription"""
         logger.info(f"resolve_gateway_live_logs called with gateway_id: {gateway_id}")
-        
+        print("1")
         try:
             try:
                 gateway = Gateway.objects.get(id=gateway_id)
@@ -154,8 +142,6 @@ class Subscription(graphene.ObjectType):
                 raise Exception(f"Gateway {gateway_id} not found")
 
             context = info.context
-            
-            # بررسی نوع context
             if hasattr(context, 'get'):
                 consumer = context.get('consumer')
                 subscription_id = context.get('subscription_id')
@@ -167,7 +153,6 @@ class Subscription(graphene.ObjectType):
                 consumer = None
                 subscription_id = None
 
-            # join به gateway group (فقط در WebSocket)
             if consumer:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
@@ -176,7 +161,6 @@ class Subscription(graphene.ObjectType):
                 finally:
                     loop.close()
 
-            # شروع log streaming در background (فقط در WebSocket)
             if consumer and subscription_id:
                 self._start_log_streaming(gateway, consumer, subscription_id, log_type, line_count)
 
@@ -201,32 +185,26 @@ class Subscription(graphene.ObjectType):
             )
     
     def _start_background_monitoring(self, gateway, consumer, subscription_id):
-        """شروع background monitoring در thread جداگانه"""
         def monitor():
             logger.info(f"Background monitoring thread started for gateway {gateway.id}")
             
-            # گرفتن channel layer
             channel_layer = get_channel_layer()
             if not channel_layer:
                 logger.error("Channel layer not found")
                 return
             
-            # monitoring loop
             import time
             while True:
                 try:
-                    time.sleep(5)  # هر 5 ثانیه
+                    time.sleep(5) 
                     
-                    # گرفتن system info جدید
                     client = grpc_manager.get_client(gateway.address, gateway.port)
                     system_info = client.get_system_info()
-                    
-                    # Parse کردن داده‌ها
+
                     cpu_percent = parse_cpu_usage(system_info.get('cpu_usage'))
                     memory_percent = parse_memory_usage(system_info.get('memory_usage'))
                     uptime_formatted = parse_uptime(system_info.get('uptime'))
-                    
-                    # ارسال به channel layer
+
                     async def send_update():
                         await channel_layer.group_send(
                             f"gateway_{gateway.id}_monitoring",
@@ -249,7 +227,6 @@ class Subscription(graphene.ObjectType):
                             }
                         )
                     
-                    # اجرای async function
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
                     try:
@@ -260,9 +237,8 @@ class Subscription(graphene.ObjectType):
                         
                 except Exception as e:
                     logger.error(f"Error in monitoring thread for gateway {gateway.id}: {e}")
-                    time.sleep(5)  # منتظر ماندن در صورت خطا
-        
-        # شروع thread
+                    time.sleep(5) 
+
         monitor_thread = threading.Thread(
             target=monitor,
             daemon=True,
@@ -271,11 +247,10 @@ class Subscription(graphene.ObjectType):
         monitor_thread.start()
         logger.info(f"Started monitoring thread for gateway {gateway.id}")
     
+
     def _start_log_streaming(self, gateway, consumer, subscription_id, log_type, line_count):
-        """شروع log streaming در thread جداگانه"""
         def stream_logs():
             logger.info(f"Log streaming thread started for gateway {gateway.id}")
-            
             channel_layer = get_channel_layer()
             if not channel_layer:
                 logger.error("Channel layer not found")
@@ -284,7 +259,8 @@ class Subscription(graphene.ObjectType):
             stream_id = f"logs_{gateway.id}_{subscription_id}"
             
             try:
-                # گرفتن log generator
+                logger.info(f"Attempting to start log stream: {gateway.address}:{gateway.port}")
+            
                 log_generator = grpc_manager.start_live_logs_stream(
                     gateway.address,
                     gateway.port,
@@ -294,10 +270,12 @@ class Subscription(graphene.ObjectType):
                     line_count
                 )
 
+
+                logger.info(f"Log generator created: {log_generator}")
                 line_number = 1
                 for log_line in log_generator:
+                    logger.info(f"Received log line: {log_line}")
                     try:
-                        # ارسال log به channel
                         async def send_log():
                             await channel_layer.group_send(
                                 f"gateway_{gateway.id}_monitoring",
@@ -334,10 +312,8 @@ class Subscription(graphene.ObjectType):
                 logger.error(f"Error in log streaming thread for gateway {gateway.id}: {e}")
             
             finally:
-                # بستن stream
                 grpc_manager.stop_live_logs_stream(gateway.address, gateway.port, stream_id)
         
-        # شروع thread
         stream_thread = threading.Thread(
             target=stream_logs,
             daemon=True,
