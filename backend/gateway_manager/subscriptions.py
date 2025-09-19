@@ -259,6 +259,8 @@ class Subscription(graphene.ObjectType):
             stream_id = f"logs_{gateway.id}_{subscription_id}"
             
             try:
+                logger.info(f"Attempting to start log stream: {gateway.address}:{gateway.port}")
+            
                 log_generator = grpc_manager.start_live_logs_stream(
                     gateway.address,
                     gateway.port,
@@ -268,8 +270,11 @@ class Subscription(graphene.ObjectType):
                     line_count
                 )
 
+
+                logger.info(f"Log generator created: {log_generator}")
                 line_number = 1
                 for log_line in log_generator:
+                    logger.info(f"Received log line: {log_line}")
                     try:
                         async def send_log():
                             await channel_layer.group_send(
