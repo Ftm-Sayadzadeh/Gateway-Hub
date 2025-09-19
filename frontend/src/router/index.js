@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import GatewayList from '@/views/GatewayList.vue'
 import Monitoring from '@/views/Monitoring.vue'
-// import CreateGatewayForm from '@/views/CreateGatewayForm.vue'
+import CreateGatewayForm from '@/views/CreateGatewayForm.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,22 +44,22 @@ const router = createRouter({
         title: 'Gateway Monitoring'
       }
     },
-    // {
-    //   path: '/gateway/:id/edit',
-    //   name: 'EditGateway',
-    //   component: () => import('@/views/EditGateway.vue'),
-    //   meta: {
-    //     title: 'Edit Gateway'
-    //   }
-    // },
-    // {
-    //   path: '/gateway/create',
-    //   name: 'CreateGateway',
-    //   component: CreateGatewayForm,
-    //   meta: {
-    //     title: 'Create Gateway'
-    //   }
-    // },
+    {
+      path: '/gateway/:id/edit',
+      name: 'EditGateway',
+      component: () => import('@/views/EditGatewayForm.vue'),
+      meta: {
+        title: 'Edit Gateway'
+      }
+    },
+    {
+      path: '/gateway/create',
+      name: 'CreateGateway',
+      component: CreateGatewayForm,
+      meta: {
+        title: 'Create Gateway'
+      }
+    },
     // Catch all 404 - redirect to gateway list
     {
       path: '/:pathMatch(.*)*',
