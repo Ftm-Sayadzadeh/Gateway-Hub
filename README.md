@@ -1,4 +1,4 @@
-# Gateway-Hub# Gateway Hub
+# Gateway-Hub
 
 A comprehensive real-time gateway management system built for monitoring and managing network gateways with live log streaming and system metrics.
 
