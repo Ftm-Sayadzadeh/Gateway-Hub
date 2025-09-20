@@ -300,7 +300,6 @@ export default {
       const serviceType = panel.serviceType || 'GATEWAY_AGENT'
 
       console.log(' Starting FAKE logs for panel:', panelId, 'Service:', serviceType)
-=
       startFakeLogGeneration(panelId, serviceType, gatewayId, 3000)
     }
 
